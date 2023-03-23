@@ -10,7 +10,10 @@ import main.GamePanel;
 
 public class LoadSave {
     
-    public static String m = "image/m.png";
+    public static final String m = "image/m.png";
+    public static final String BULLET = "image/bullet.png";
+    public static final String ROCKET = "image/rocket.png";
+    public static final String BACK_GROUND_IMG = "image/background.png";
     
     public static BufferedImage getImage(String path) {
         InputStream is = LoadSave.class.getResourceAsStream("/" + path);

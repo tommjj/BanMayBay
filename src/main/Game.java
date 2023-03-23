@@ -3,23 +3,22 @@ package main;
 import gameStates.Playing;
 import java.awt.Graphics;
 
-public class Game implements Runnable{
+public class Game implements Runnable {
+
     private GamePanel gamePanel;
-    private GameWindow gameWindow;
-    
     private Thread gameThread;
-    private final int FPS_SET = 1200000, UPS_SET = 120;
-    
+    private final int FPS_SET = 1200, UPS_SET = 120;
+
     private int frames = 0;
     private int updates = 0;
-    
+
     private Playing playing;
-    
+
     public Game() {
         initClasses();
         gamePanel = new GamePanel(this);
-        gameWindow = new GameWindow(gamePanel);
-        
+        new GameWindow(gamePanel);
+
         gamePanel.setFocusable(true);
         gamePanel.requestFocus();
 
@@ -36,12 +35,12 @@ public class Game implements Runnable{
 
     public Playing getPlaying() {
         return playing;
-    } 
-    
+    }
+
     private void initClasses() {
         playing = new Playing(this);
     }
-    
+
     public void update() {
         playing.update();
     }
@@ -49,7 +48,7 @@ public class Game implements Runnable{
     public void rander(Graphics g) {
         playing.draw(g);
     }
-    
+
     private void startGameLoop() {
         gameThread = new Thread(this);
         gameThread.start();
@@ -82,6 +81,7 @@ public class Game implements Runnable{
             if (deltaF >= 1) {
                 gamePanel.repaint();
                 deltaF--;
+
             }
 
             if (System.currentTimeMillis() - lastCheck >= 1000) {
@@ -96,6 +96,5 @@ public class Game implements Runnable{
     public GamePanel getGamePanel() {
         return gamePanel;
     }
-    
-    
+
 }

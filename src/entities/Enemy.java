@@ -14,7 +14,8 @@ public class Enemy {
     private double x, y;
     private Rectangle hitbox;
     private Random rand = new Random();
-    private double speed = 1;
+    private double speed = 2;
+    private int nextSpawn = 0;
 
     public Enemy(int x, int y) {
         this.x = x;
@@ -25,13 +26,13 @@ public class Enemy {
     public Rectangle getHitbox() {
         return hitbox;
     }
-    
+
     public void resetSpeed() {
         speed = 1;
     }
 
     public void reset() {
-        switch (rand.nextInt(4)) {
+        switch (nextSpawn) {
             case 0:
                 x = rand.nextInt(WindowConstants.WIDTH_SIZE);
                 y = 0;
@@ -51,16 +52,16 @@ public class Enemy {
             default:
                 throw new AssertionError();
         }
-
-        
-        if(speed < 4)
+        nextSpawn = rand.nextInt(4);
+        if (speed < 4) {
             speed += 0.1f;
-        else if(speed < 6)
+        } else if (speed < 6) {
             speed += 0.05f;
-        else if(speed < 8)
+        } else if (speed < 8) {
             speed += 0.02f;
-        else if(speed < 10)
-             speed += 0.01f;
+        } else if (speed < 10) {
+            speed += 0.01f;
+        }
     }
 
     public void updateHitbox() {
@@ -76,7 +77,12 @@ public class Enemy {
     }
 
     public void draw(Graphics g) {
-        g.setColor(Color.red);
+        
+        g.setColor(Color.WHITE);
         g.fillRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+    }
+
+    public int getNextSpawn() {
+        return nextSpawn;
     }
 }

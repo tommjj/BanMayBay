@@ -1,8 +1,5 @@
 package entities;
 
-import gameStates.Playing;
-import gameStates.Statemethods;
-import geometry2d.Circle;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
@@ -15,53 +12,55 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import javafx.scene.shape.Line;
+
+import gameStates.Playing;
+import gameStates.Statemethods;
+import geometry2d.Circle;
 import methods.MathMethods;
 import utiliz.Constants;
+import utiliz.DrawMethods;
 import utiliz.LoadSave;
 
 public class Player implements Statemethods {
 
     private Playing playing;
 
-    private double oX = Constants.WindowConstants.WIDTH_SIZE / 2;
-    private double oY = Constants.WindowConstants.HEIGHT_SIZE / 2;
+    private double oX = Constants.GameConstants.WIDTH_SIZE / 2;
+    private double oY = Constants.GameConstants.HEIGHT_SIZE / 2;
 
     private boolean checkMousePressed = false;
-    private boolean checkCtrlDown = false;
     private int currentMouseX, currentMouseY;
-    private int vetorX, vetorY;
+    private int vectorX, vectorY;
     private int checkBotton;
+    private final Circle hitbox;
 
     private boolean left = false, right = false, up = false, down = false;
+    private final int speed = 5;
 
-    private int attackTick = 0, attackSpead = 7;
-
-    private int speed = 4, dashTick = 0, dashTime = 10;
+    private int dashTick = 0;
+    private final int dashTime = 10;
     private boolean dleft = false, dright = false, dup = false, ddown = false;
     private boolean dash = true, dashFirst = false;
-    private ArrayList<Line> lastVetor = new ArrayList<>();
+    private final ArrayList<Line> lastVetor;
 
-    private int maxLifeP = 6;
+    private int maxLifeP = 3;
     private int lifeP = maxLifeP;
 
-    private int maxBullet = 120;
-    private int currentBullet = maxBullet;
-    private Circle hitbox;
+    private final BufferedImage img;
 
-    private BufferedImage img;
-
-    private BulletManager bulletManager;
+    private final WeaponsManager weaponsManager;
 
     public Player(Playing playing) {
+        this.lastVetor = new ArrayList<>();
         this.playing = playing;
         hitbox = new Circle((int) oX, (int) oY, 10);
-        bulletManager = new BulletManager(playing);
+        weaponsManager = new WeaponsManager(playing);
         img = LoadSave.getImage(LoadSave.m);
     }
 
     public void updateHitbox() {
-        hitbox.oX = (int) oX;
-        hitbox.oY = (int) oY;
+        hitbox.x = (int) oX;
+        hitbox.y = (int) oY;
     }
 
     public void chageX(double value) {
@@ -69,8 +68,8 @@ public class Player implements Statemethods {
             oX = 0;
             return;
         }
-        if (oX + value > Constants.WindowConstants.WIDTH_SIZE) {
-            oX = Constants.WindowConstants.WIDTH_SIZE;
+        if (oX + value > Constants.GameConstants.WIDTH_SIZE) {
+            oX = Constants.GameConstants.WIDTH_SIZE;
             return;
         }
         oX += value;
@@ -81,18 +80,18 @@ public class Player implements Statemethods {
             oY = 0;
             return;
         }
-        if (oY + value > Constants.WindowConstants.HEIGHT_SIZE) {
-            oY = Constants.WindowConstants.HEIGHT_SIZE;
+        if (oY + value > Constants.GameConstants.HEIGHT_SIZE) {
+            oY = Constants.GameConstants.HEIGHT_SIZE;
             return;
         }
         oY += value;
     }
-    
+
     public void updateVetor() {
         Point.Double p = MathMethods.getPointTL((int) oX, (int) oY, currentMouseX, currentMouseY, 500);
 
-        vetorX = (int) p.x;
-        vetorY = (int) p.y;
+        vectorX = (int) p.x;
+        vectorY = (int) p.y;
     }
 
     @Override
@@ -107,7 +106,7 @@ public class Player implements Statemethods {
                 lastVetor.clear();
             }
             if (dashTick % 2 == 0) {
-                lastVetor.add(new Line(oX, oY, vetorX, vetorY));
+                lastVetor.add(new Line(oX, oY, vectorX, vectorY));
             }
             if (!dleft && dright) {
                 chageX(20);
@@ -147,7 +146,7 @@ public class Player implements Statemethods {
             }
         }
 
-        bulletManager.update();
+        weaponsManager.update();
 
         updateVetor();
 
@@ -162,46 +161,26 @@ public class Player implements Statemethods {
         }
 
         if (checkMousePressed) {
-            if (attackTick >= attackSpead && currentBullet > 0 && checkBotton == MouseEvent.BUTTON1) {
-                bulletManager.addBullet(oX, oY, vetorX, vetorY);
-                attackTick = 0;
-                currentBullet--;
-            } else if (attackTick >= attackSpead && currentBullet > 2) {
-                Point.Double p1 = MathMethods.turnCenter(oX, oY, vetorX, vetorY, Math.toRadians(-1.5));
-                Point.Double p2 = MathMethods.turnCenter(oX, oY, vetorX, vetorY, Math.toRadians(1.5));
-
-//                bulletManager.addBullet(oX, oY, vetorX, vetorY);
-//                bulletManager.addBullet(oX, oY, p1.x, p1.y);
-//                bulletManager.addBullet(oX, oY, p2.x, p2.y);
-                bulletManager.addRocket(oX, oY, vetorX, vetorY);
-                attackTick = 0;
-                currentBullet -= 3;
-            } else if (attackTick >= attackSpead && currentBullet < maxBullet) {
-                currentBullet++;
-                attackTick = 0;
+            if (checkBotton == MouseEvent.BUTTON1) {
+                weaponsManager.fire(oX, oY, vectorX, vectorY, WeaponsManager.MACHINE_GUN);
+            } else {
+                weaponsManager.fire(oX, oY, vectorX, vectorY, WeaponsManager.ROCKET_GUN);
             }
-            attackTick++;
         } else {
-            if (attackTick >= attackSpead && currentBullet < maxBullet) {
-                currentBullet++;
-                attackTick = 0;
-            }
-            attackTick++;
+            weaponsManager.reload();
         }
     }
-    
-    
 
     @Override
     public void draw(Graphics g) {
         g.setColor(Color.BLACK);
         g.fillRect((int) oX - 2, (int) oY - 2, 4, 4);
 
-        if (dash && dashFirst) { 
+        if (dash && dashFirst) {
             float a = 0.6f / lastVetor.size();
             float ap = 0;
             for (int i = 0; i < lastVetor.size(); i++) {
-                Graphics2D g2dt = (Graphics2D) g.create();          
+                Graphics2D g2dt = (Graphics2D) g.create();
                 ap += a;
                 AlphaComposite alcom = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, ap > 1 ? 1 : ap);
                 g2dt.setComposite(alcom);
@@ -211,35 +190,38 @@ public class Player implements Statemethods {
                 g2dt.dispose();
             }
         }
-        
+
         Graphics2D g2d = (Graphics2D) g.create();
         g2d.translate(oX, oY);
-        g2d.rotate(Math.toRadians(MathMethods.getAngle((int) oX, (int) oY, vetorX, vetorY)));
+        g2d.rotate(Math.toRadians(MathMethods.getAngle((int) oX, (int) oY, vectorX, vectorY)));
 
         g2d.drawImage(img, (int) (-45 * 0.4f), (int) (-40 * 0.4f), (int) (90 * 0.4f), (int) (80 * 0.4f), null);
+
+        DrawMethods.drawAmmo(g, weaponsManager.getMaxBullet(), weaponsManager.getCurrentBullet(), (int) oX - 25, (int) oY + 22, 50, 2, 2, Color.WHITE);
         g2d.dispose();
 
+        g.setColor(Color.WHITE);
         g.fillRect(currentMouseX - 7, currentMouseY - 2, 14, 4);
         g.fillRect(currentMouseX - 2, currentMouseY - 7, 4, 14);
 
-        bulletManager.draw(g);
+        weaponsManager.draw(g);
 
-        g.setColor(Color.black);
+    }
+
+    public void drawUI(Graphics g) {
+        g.setColor(Color.WHITE);
         Font font = new Font("Serif", Font.BOLD, 45);
         g.setFont(font);
         g.drawString("Score: " + playing.getScore(), 5, 80);
 
         //draw health
-        g.setColor(Color.red);
-        for (int i = 0; i < lifeP; i++) {
-            g.fillRect(i * 50, 0, 49, 20);
-        }
+        DrawMethods.drawHealth(g, maxLifeP, lifeP, 0, 0, 450, 20, 10, Color.WHITE);
 
         //currentBullet
-        g.setColor(Color.red);
-
-        g.fillRect(0, 25, currentBullet * 3, 20);
+        DrawMethods.drawAmmo(g, weaponsManager.getMaxBullet(), weaponsManager.getCurrentBullet(), 0, 22, 435, 8, 5, Color.WHITE);
     }
+
+    
 
     @Override
     public void mouseClicked(MouseEvent e) {
@@ -266,6 +248,11 @@ public class Player implements Statemethods {
     @Override
     public void mouseDragged(MouseEvent e) {
         setCurrentMouse(e);
+    }
+
+    public void setCurrentMouse(int x, int y) {
+        currentMouseX = x;
+        currentMouseY = y;
     }
 
     @Override
@@ -307,7 +294,6 @@ public class Player implements Statemethods {
                 down = false;
                 break;
             case KeyEvent.VK_CONTROL:
-                checkCtrlDown = false;
                 break;
         }
     }
@@ -327,7 +313,6 @@ public class Player implements Statemethods {
 
     public void resetBool() {
         checkMousePressed = false;
-        checkCtrlDown = false;
         left = false;
         right = false;
         up = false;
@@ -344,7 +329,7 @@ public class Player implements Statemethods {
         oY = Constants.WindowConstants.HEIGHT_SIZE / 2;
 
         resetBool();
-        bulletManager.reset();
+        weaponsManager.reset();
     }
 
     private void setCurrentMouse(MouseEvent e) {
@@ -364,31 +349,19 @@ public class Player implements Statemethods {
         this.maxLifeP = maxLifeP;
     }
 
-    public void setMaxBullet(int maxBullet) {
-        this.maxBullet = maxBullet;
+    public int getVectorX() {
+        return vectorX;
     }
 
-    public int getVetorX() {
-        return vetorX;
+    public void setVectorX(int vectorX) {
+        this.vectorX = vectorX;
     }
 
-    public void setVetorX(int vetorX) {
-        this.vetorX = vetorX;
+    public int getVectorY() {
+        return vectorY;
     }
 
-    public int getVetorY() {
-        return vetorY;
-    }
-
-    public void setVetorY(int vetorY) {
-        this.vetorY = vetorY;
-    }
-
-    public int getAttackSpead() {
-        return attackSpead;
-    }
-
-    public void setAttackSpead(int attackSpead) {
-        this.attackSpead = attackSpead;
+    public void setVectorY(int vectorY) {
+        this.vectorY = vectorY;
     }
 }

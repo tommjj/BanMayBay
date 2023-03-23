@@ -4,22 +4,22 @@ import java.awt.Rectangle;
 
 public class Circle {
 
-    public int oX, oY;
+    public int x, y;
     public int r;
 
     public Circle(int oX, int oY, int r) {
-        this.oX = oX;
-        this.oY = oY;
+        this.x = oX;
+        this.y = oY;
         this.r = r;
     }
 
     public boolean intersect(Circle circle) {
-        double val = Math.sqrt((oX - circle.oX) * (oX - circle.oX) + (oY - circle.oY) * (oY - circle.oY));
+        double val = Math.sqrt((x - circle.x) * (x - circle.x) + (y - circle.y) * (y - circle.y));
         return val <= r + circle.r;
     }
 
     public boolean intersect(int x, int y) {
-        double val = Math.sqrt((oX - x) * (oX - x) + (oY - y) * (oY - y));
+        double val = Math.sqrt((this.x - x) * (this.x - x) + (this.y - y) * (this.y - y));
         return val <= r;
     }
 
@@ -36,19 +36,19 @@ public class Circle {
         if (intersect(ret.x + ret.width, ret.y + ret.height)) {
             return true;
         }
-        if (ret.contains(oX, oY)) {
+        if (ret.contains(x, y)) {
             return true;
         }
-        if (ret.contains(oX + r, oY)) {
+        if (ret.contains(x + r, y)) {
             return true;
         }
-        if (ret.contains(oX, oY + r)) {
+        if (ret.contains(x, y + r)) {
             return true;
         }
-        if (ret.contains(oX - r, oY)) {
+        if (ret.contains(x - r, y)) {
             return true;
         }
-        if (ret.contains(oX, oY - r)) {
+        if (ret.contains(x, y - r)) {
             return true;
         }
         return false;

@@ -1,47 +1,52 @@
 package entities;
 
-import java.awt.Color;
+import geometry2d.Circle;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 import methods.MathMethods;
 
+public class Bullet extends RangedWeapon {
 
-public class Bullet {
-    private double x, y;
-    private double veterX, veterY;
-    private Rectangle hitbox;
+    private Circle hitbox;
     private int updateTime = 0;
-    
+    private static float speed = 10;
+
     public Bullet(double x, double y, double mX, double mY) {
         this.x = x;
         this.y = y;
-        Point.Double p = MathMethods.getVetorWithLength(x, y, mX, mY, 10);
-        veterX = p.x;
-        veterY = p.y;
-        hitbox = new Rectangle((int)x,(int) y, 5, 5);
-    }
-    
-    private void updateHitBox() {
-        hitbox.x = (int)x;
-        hitbox.y = (int)y;
+        Point.Double p = MathMethods.getVetorWithLength(x, y, mX, mY, speed);
+        vectorX = p.x;
+        vectorY = p.y;
+        hitbox = new Circle((int) x, (int) y, 2);
     }
 
-    public Rectangle getHitbox() {
+    private void updateHitBox() {
+        hitbox.x = (int) x;
+        hitbox.y = (int) y;
+    }
+
+    public Circle getHitbox() {
         return hitbox;
     }
-    
+
     public void update() {
-        x += veterX;
-        y += veterY;
+        x += vectorX;
+        y += vectorY;
         updateHitBox();
         updateTime++;
-       
+
     }
-    
-    public void draw(Graphics g) {
-        g.setColor(Color.BLUE);
-        g.fillRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+
+    public void draw(Graphics g, BufferedImage img) {
+        Graphics2D g2d = (Graphics2D) g.create();
+        g2d.translate(hitbox.x, hitbox.y);
+        g2d.rotate(Math.toRadians(MathMethods.getAngle(x, y, x+vectorX, y+vectorY)));
+
+        g2d.drawImage(img, (int) (-2), (int) (-3),null);
+        g2d.dispose();
+
     }
 
     public double getX() {
@@ -63,6 +68,12 @@ public class Bullet {
     public int getUpdateTime() {
         return updateTime;
     }
-    
-    
+
+    public static float getSpeed() {
+        return speed;
+    }
+
+    public static void setSpeed(float speed) {
+        Bullet.speed = speed;
+    }
 }
